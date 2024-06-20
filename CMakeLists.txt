@@ -53,7 +53,7 @@ if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
   qt_add_executable(student_management_system
 	  MANUAL_FINALIZATION
 	  ${PROJECT_SOURCES}
-	  软件需求.md
+	  README.md
   )
   # Define target properties for Android with Qt 6 as:
   #    set_property(TARGET student_management_system APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
