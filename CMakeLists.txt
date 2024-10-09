@@ -8,17 +8,22 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# 填上自己的Qt编译器路径，如果没有则会使用默认的Qt路径
-#IF (MSVC)
-#  set(CMAKE_PREFIX_PATH "E:\\Qt\\6.2.4\\msvc2019_64")
-#  set(QT_DIR "E:\\Qt\\6.2.4\\msvc2019_64\\lib\\cmake\\Qt6")
-#ELSEIF (MINGW)
-#  set(CMAKE_PREFIX_PATH "E:\\Qt\\6.2.4\\mingw_64")
-#  set(QT_DIR "E:\\Qt\\6.2.4\\mingw_64\\lib\\cmake\\Qt6")
-#ENDIF ()
+# Fill in your own Qt compiler path, if not the default Qt path will be used.
+IF (MSVC)
+  set(CMAKE_PREFIX_PATH "E:\\Qt\\6.2.4\\msvc2019_64")
+  set(QT_DIR "E:\\Qt\\6.2.4\\msvc2019_64\\lib\\cmake\\Qt6")
+  add_compile_options(/D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+ELSEIF (MINGW)
+  set(CMAKE_PREFIX_PATH "E:\\Qt\\6.2.4\\mingw_64")
+  set(QT_DIR "E:\\Qt\\6.2.4\\mingw_64\\lib\\cmake\\Qt6")
+ENDIF ()
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Sql)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Sql)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Sql Test)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Sql Test)
+
+# Setting up Qt's linked libraries
+set(QT_LIBS Qt${QT_VERSION_MAJOR}::Widgets
+  Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Test)
 
 set(TS_FILES student_management_system_zh_CN.ts)
 
@@ -49,6 +54,11 @@ set(PROJECT_SOURCES
 	${TS_FILES}
 )
 
+# Setting up your own linkbase
+set(LIBS )
+
+set(LIB ${LIBS} ${QT_LIBS})
+
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
   qt_add_executable(student_management_system
 	  MANUAL_FINALIZATION
@@ -77,8 +87,7 @@ else ()
   qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif ()
 
-target_link_libraries(student_management_system PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-	Qt${QT_VERSION_MAJOR}::Sql)
+target_link_libraries(student_management_system PRIVATE ${LIB})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

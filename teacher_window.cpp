@@ -62,7 +62,7 @@ void TeacherWindow::resizeEvent(QResizeEvent *event) {
 
 void TeacherWindow::UpdateCourseView() {
   QVector<Course> courses = this->course_manager_->GetAllCourses();
-  QStringList headers = {"课程ID", "课程名字", "课程时长"};
+  QStringList headers = {"课程ID", "课程名字", "课程课时"};
   auto *model = new QStandardItemModel(courses.size(), headers.size());
 
   model->setHorizontalHeaderLabels(headers);
@@ -115,10 +115,9 @@ int TeacherWindow::SetIntDialog(const QString &dialog_title,
 			  else if (button_click == QMessageBox::Close)
 				is_value = functionreturnsetting::kDialogClean;
 			} else {
-			  auto course_manager_begin = this->course_manager_->GetAllCourses().cbegin();
-			  auto course_manager_end = this->course_manager_->GetAllCourses().cend();
-			  if (std::any_of(course_manager_begin,
-							  course_manager_end,
+              auto course_manager_ids=this->course_manager_->GetAllCourses();
+              if (std::any_of(course_manager_ids.cbegin(),
+                              course_manager_ids.cend(),
 							  [value](const Course &course) {
 								return course.course_id == value;
 							  })) {
@@ -174,7 +173,7 @@ void TeacherWindow::AddCourse() {
   }
 
   while (true) {
-	dialog_value = SetIntDialog("添加课程", "请输入课程的课时： ", course_duration);
+    dialog_value = SetIntDialog("添加课程", "请输入课程的课时： ", course_duration);
 	if (dialog_value == functionreturnsetting::kDialogSuccess)
 	  break;
 	else if (dialog_value == functionreturnsetting::kDialogClean)
@@ -201,7 +200,7 @@ void TeacherWindow::DeleteCourse() {
   bool ok;
   while (true) {
 	QString course_id_str = QInputDialog::getItem(this,
-												  "Delete Course",
+                                                  "删除课程",
 												  "请选择需要删除课程的ID： ",
 												  course_ids,
 												  0,
@@ -223,7 +222,7 @@ void TeacherWindow::DeleteCourse() {
 	Course course = this->course_manager_->GetCourse(course_id);
 	if (course.course_id == -1) {
 	  QMessageBox::warning(this, "错误！", "发生删除错误！该ID不存在请重新选择！");
-	  continue;
+        return;
 	}
 
 	int reuslt = QMessageBox::question(this,
@@ -239,10 +238,10 @@ void TeacherWindow::DeleteCourse() {
 	  return;
 
 	QMessageBox::information(this,
-							 "Delete Course",
+                             "删除课程消息",
 							 "删除成功，课程ID："
-								 + QString::number(this->course_manager_->GetCourse(
-									 course_id).course_id) + "课程名字： " +
+                                 + QString::number(
+                                     course_id) + "课程名字： " +
 								 this->course_manager_->GetCourse(course_id).course_name
 								 + "课程时长： " +
 								 QString::number(this->course_manager_->GetCourse(
@@ -342,7 +341,7 @@ void TeacherWindow::AddGrade() {
 	}
 
 	if (course_id == -1) {
-	  QMessageBox::warning(this, "Add Grade", "没有找到该课程的ID！");
+      QMessageBox::warning(this, "添加成绩警告！", "没有找到该课程的ID！");
 	  return;
 	}
 

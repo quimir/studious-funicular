@@ -141,7 +141,6 @@ QString Admin::GenerateReport(const QString &student_id) const {
   query.prepare("SELECT course_id, grade FROM grades WHERE student_id = ?");
   query.addBindValue(student_id);
   if (query.exec()) {
-	report += "课程: ";
 	while (query.next()) {
 	  int course_id = query.value("course_id").toInt();
 	  double grade = query.value("grade").toDouble();
@@ -318,7 +317,7 @@ QString Admin::GenerateReport(const QString &student_id, int course_id) {
   double grade = student.GetStudentGrade(course_id);
 
   report += "课程ID： " + QString::number(course.course_id) + "\n" + "课程名字： "
-	  + course.course_name + "\n" + "课程时长： " + QString::number(course.course_duration)
+      + course.course_name + "\n" + "课程课时： " + QString::number(course.course_duration)
 	  +
 		  "成绩： " + (grade == -1 ? "N/A" : QString::number(grade)) + "\n";
 

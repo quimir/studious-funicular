@@ -50,6 +50,7 @@ StudentWindow::StudentWindow(Admin *admin, Student &student,
   connect(ui->logout_button, &QPushButton::clicked, this, &StudentWindow::Logout);
   connect(ui->exit_button, &QPushButton::clicked, this, [=]() {
 	LoginWindow *login_window = new LoginWindow(this->admin_);
+    login_window->setGeometry(this->geometry());
 	this->close();
 	login_window->show();
   });
@@ -66,7 +67,7 @@ void StudentWindow::UpdateCourseView() {
   }
   Student student = this->admin_->GetStudent(this->current_student_.id_);
 
-  QStringList headers = {"课程ID", "课程名字", "时长", "成绩"};
+  QStringList headers = {"课程ID", "课程名字", "课程课时", "课程成绩"};
   QStandardItemModel *display_model = new QStandardItemModel();
   display_model->setHorizontalHeaderLabels(headers);
 
@@ -95,7 +96,7 @@ void StudentWindow::AddCourse() {
 	return;
   }
 
-  if (this->current_student_.GetAllGradesKeys().size() <= 18) {
+  if (this->current_student_.GetAllGradesKeys().size() >= 18) {
 	QMessageBox::warning(this,
 						 "警告！",
 						 "您的课程选择已经超出限制，请删除部分课程后再选择!");
@@ -110,7 +111,7 @@ void StudentWindow::AddCourse() {
 
   while (true) {
 	QString course_name =
-		QInputDialog::getItem(this, "移除课程", "添加的名字： ", course_names, 0, false);
+		QInputDialog::getItem(this, "添加课程", "添加的名字： ", course_names, 0, false);
 	if (course_name.isEmpty())
 	  return;
 
@@ -123,19 +124,20 @@ void StudentWindow::AddCourse() {
 	}
 
 	int selected_course_id = selected_course.course_id;
-	if (std::any_of(this->current_student_.GetAllGradesKeys().cbegin(),
-					this->current_student_.GetAllGradesKeys().cend(),
+    QVector<int> student_grades_ids=this->current_student_.GetAllGradesKeys();
+    if (std::any_of(student_grades_ids.cbegin(),
+                    student_grades_ids.cend(),
 					[&selected_course_id](int value) {
 					  return selected_course_id == value;
 					})) {
 	  int result = QMessageBox::warning(this,
 										"Confirm",
-										"发现重复输入，是否要重新选择?",
+                                        "发现重复添加该课程，是否要重新选择?",
 										QMessageBox::Yes | QMessageBox::No
 											| QMessageBox::Close);
 	  if (result == QMessageBox::Yes)
 		continue;
-	  else {
+      else {
 		return;
 	  }
 	}
@@ -191,7 +193,7 @@ void StudentWindow::RemoveCourse() {
 
 	int result = QMessageBox::question(this,
 									   "Confirm",
-									   "你确定要取消该课程吗？",
+									   "你确定要移除该课程吗？",
 									   QMessageBox::Yes | QMessageBox::No
 										   | QMessageBox::Close);
 
@@ -215,7 +217,7 @@ void StudentWindow::QueryCourses() {
   QDialog dialog;
   dialog.setWindowTitle("查询窗口");
   QVBoxLayout *layout = new QVBoxLayout(&dialog);
-  QLabel *label = new QLabel("请输入查询的ID： ", &dialog);
+  QLabel *label = new QLabel("请输入查询的课程ID： ", &dialog);
 
   layout->addWidget(label);
   QLineEdit *line_edit = new QLineEdit(&dialog);
@@ -226,14 +228,13 @@ void StudentWindow::QueryCourses() {
 
   layout->addWidget(button_box);
 
-  connect(button_box->button(QDialogButtonBox::Ok), &QPushButton::clicked, &dialog,
+  connect(button_box->button(QDialogButtonBox::Ok), &QPushButton::clicked,&dialog,
 		  [&dialog, this, &line_edit]() {
 			bool ok;
 			int course_id = line_edit->text().toInt(&ok);
-			QVector<int>
-				enrolled_courses_index = this->current_student_.GetEnrolledCourses();
-			if (!std::any_of(enrolled_courses_index.cbegin(),
-							 enrolled_courses_index.cend(),
+            QVector<int> grades_names=this->current_student_.GetAllGradesKeys();
+            if (!std::any_of(grades_names.cbegin(),
+                             grades_names.cend(),
 							 [course_id](int value) {
 							   return course_id == value;
 							 })) {
@@ -245,7 +246,7 @@ void StudentWindow::QueryCourses() {
 			if (ok) {
 			  QString string =
 				  this->admin_->GenerateReport(this->current_student_.id_, course_id);
-			  QMessageBox::information(this, "查询到的成绩： ", string);
+              QMessageBox::information(this, "查询到的信息： ", string);
 			  dialog.accept();
 			}
 		  });
